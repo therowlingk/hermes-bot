@@ -6,6 +6,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "axios": "latest",
     "node-telegram-bot-api": "latest"
   }
 }
