@@ -14,11 +14,12 @@ bot.on('message', async (msg) => {
 
   if (text === '/start') {
 
-    return bot.sendMessage(
+    bot.sendMessage(
       chatId,
       '🚀 Hermes AI Online!\n\nSilakan chat apa saja.'
     );
 
+    return;
   }
 
   try {
@@ -27,20 +28,16 @@ bot.on('message', async (msg) => {
       'https://api.freemodel.dev/v1/chat/completions',
       {
         model: 'gpt-3.5-turbo',
-
         messages: [
           {
             role: 'user',
             content: text
           }
         ]
-
       },
       {
         headers: {
-          'Authorization':
-            `Bearer ${process.env.FREEMODEL_API_KEY}`,
-
+          Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -57,36 +54,9 @@ bot.on('message', async (msg) => {
 
     bot.sendMessage(
       chatId,
-      '❌ Error AI:\n' +
-      JSON.stringify(
-        err.response?.data || err.message
-      )
+      '❌ Error AI'
     );
 
   }
 
-});          'Authorization': `Bearer ${process.env.FREEMODEL_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    console.log(response.data);
-
-    const aiReply =
-      response.data.choices?.[0]?.message?.content ||
-      'AI tidak memberi jawaban';
-
-    bot.sendMessage(chatId, aiReply);
-
-  } catch (err) {
-
-    console.log(err.response?.data || err.message);
-
-    bot.sendMessage(
-      chatId,
-      '❌ Error AI:\n' +
-      JSON.stringify(err.response?.data || err.message)
-    );
-  }
 });
