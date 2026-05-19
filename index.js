@@ -1,13 +1,26 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, {
-  polling: true
-});
+/*
+====================================
+BOT TELEGRAM
+====================================
+*/
 
-console.log("🚀 AIMAN AI Running...");
+const bot = new TelegramBot(
+  process.env.BOT_TOKEN,
+  {
+    polling: true
+  }
+);
 
-const chats = {};
+console.log("🚀 AIMAN AI ONLINE");
+
+/*
+====================================
+MESSAGE HANDLER
+====================================
+*/
 
 bot.on('message', async (msg) => {
 
@@ -16,145 +29,128 @@ bot.on('message', async (msg) => {
 
   if (!text) return;
 
-  console.log("Message:", text);
+  console.log("USER:", text);
 
   /*
-  =========================
+  ====================================
   START
-  =========================
+  ====================================
   */
 
   if (text === '/start') {
 
     return bot.sendMessage(
       chatId,
-      `🚀 AIMAN AI Crypto Assistant Online
+      `
+🚀 AIMAN AI ONLINE
 
-Ketik pertanyaan crypto apa saja.`
+Crypto Assistant:
+• Airdrop
+• Mint FCFS
+• Web3
+• Testnet
+• NFT
+• Alpha Finder
+
+Silakan chat apa saja.
+`
     );
   }
 
   /*
-  =========================
-  RESET MEMORY
-  =========================
+  ====================================
+  TYPING
+  ====================================
   */
-
-  if (text === '/reset') {
-
-    chats[chatId] = [];
-
-    return bot.sendMessage(
-      chatId,
-      '🧠 Memory berhasil direset.'
-    );
-  }
-
-  /*
-  =========================
-  MEMORY
-  =========================
-  */
-
-  if (!chats[chatId]) {
-    chats[chatId] = [];
-  }
-
-  chats[chatId].push({
-    role: 'user',
-    content: text
-  });
-
-  /*
-  =========================
-  LIMIT MEMORY
-  =========================
-  */
-
-  if (chats[chatId].length > 10) {
-    chats[chatId].shift();
-  }
 
   bot.sendChatAction(chatId, 'typing');
 
   /*
-  =========================
+  ====================================
   AI REQUEST
-  =========================
+  ====================================
   */
 
   try {
 
     const response = await axios.post(
+
       'https://api.freemodel.dev/v1/chat/completions',
 
       {
         model: 'gpt-3.5-turbo',
 
         messages: [
-
           {
             role: 'system',
             content:
-              'Kamu adalah AIMAN AI, asisten crypto profesional untuk airdrop, mint FCFS, testnet, whitelist, NFT, dan web3.'
+              'Kamu adalah AIMAN AI, asisten crypto profesional khusus airdrop, mint FCFS, web3, dan testnet.'
           },
-
-          ...chats[chatId]
-
+          {
+            role: 'user',
+            content: text
+          }
         ]
 
       },
 
       {
         headers: {
-
           Authorization:
             `Bearer ${process.env.FREEMODEL_API_KEY}`,
 
           'Content-Type':
             'application/json'
+        },
 
-        }
+        timeout: 30000
       }
     );
 
-    console.log(response.data);
-
-    const aiReply =
-      response.data?.choices?.[0]?.message?.content
-      || '❌ AI tidak memberi jawaban.';
+    console.log("AI RESPONSE:", response.data);
 
     /*
-    =========================
-    SAVE MEMORY AI
-    =========================
+    ====================================
+    GET AI TEXT
+    ====================================
     */
 
-    chats[chatId].push({
-      role: 'assistant',
-      content: aiReply
-    });
+    let aiReply =
+      response.data?.choices?.[0]?.message?.content;
 
     /*
-    =========================
-    SEND MESSAGE
-    =========================
+    ====================================
+    FALLBACK
+    ====================================
     */
 
-    bot.sendMessage(chatId, aiReply);
+    if (!aiReply) {
+
+      aiReply =
+        '❌ AIMAN AI tidak memberi jawaban.';
+    }
+
+    /*
+    ====================================
+    SEND TO TELEGRAM
+    ====================================
+    */
+
+    await bot.sendMessage(
+      chatId,
+      aiReply
+    );
 
   } catch (err) {
 
     console.log(
+      "ERROR:",
       err.response?.data || err.message
     );
 
-    bot.sendMessage(
+    await bot.sendMessage(
       chatId,
-      '❌ Error AI:\n' +
-      JSON.stringify(
-        err.response?.data || err.message
-      )
+      '❌ Error AI.\n\nCek Railway Logs.'
     );
   }
 
