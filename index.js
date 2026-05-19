@@ -3,7 +3,8 @@ const axios = require('axios');
 
 /*
 ====================================
-BOT TELEGRAM
+AIMAN AI TELEGRAM BOT
+STABLE VERSION
 ====================================
 */
 
@@ -18,7 +19,15 @@ console.log("🚀 AIMAN AI ONLINE");
 
 /*
 ====================================
-MESSAGE HANDLER
+MEMORY CHAT
+====================================
+*/
+
+const chats = {};
+
+/*
+====================================
+BOT MESSAGE
 ====================================
 */
 
@@ -41,20 +50,167 @@ bot.on('message', async (msg) => {
 
     return bot.sendMessage(
       chatId,
-      `
-🚀 AIMAN AI ONLINE
+`
+🚀 AIMAN AI CRYPTO ASSISTANT
 
-Crypto Assistant:
-• Airdrop
-• Mint FCFS
-• Web3
-• Testnet
-• NFT
+Fitur:
+• Airdrop Hunter
 • Alpha Finder
+• Mint FCFS Guide
+• Web3 Assistant
+• Testnet Farming
+• Wallet Tracker
+• Crypto Research
 
-Silakan chat apa saja.
+Commands:
+/help
+/reset
+/alpha
+/wallet 0x...
+
+Silakan chat apa saja tentang crypto.
 `
     );
+  }
+
+  /*
+  ====================================
+  HELP
+  ====================================
+  */
+
+  if (text === '/help') {
+
+    return bot.sendMessage(
+      chatId,
+`
+📚 AIMAN COMMANDS
+
+/start → Mulai bot
+/help → Bantuan
+/reset → Reset memory
+
+/alpha → Cari alpha crypto
+/wallet 0x... → Wallet tracker
+
+Contoh:
+Apa airdrop potensial minggu ini?
+`
+    );
+  }
+
+  /*
+  ====================================
+  RESET MEMORY
+  ====================================
+  */
+
+  if (text === '/reset') {
+
+    chats[chatId] = [];
+
+    return bot.sendMessage(
+      chatId,
+      '🧠 Memory berhasil direset.'
+    );
+  }
+
+  /*
+  ====================================
+  ALPHA FINDER
+  ====================================
+  */
+
+  if (text === '/alpha') {
+
+    return bot.sendMessage(
+      chatId,
+`
+🔥 AIMAN Alpha Finder
+
+Potensi Alpha:
+• LayerZero ecosystem
+• Monad testnet
+• Berachain ecosystem
+• Blast ecosystem
+• Base ecosystem
+• Scroll ecosystem
+• ZKsync ecosystem
+
+Fokus:
+• Testnet
+• Galxe
+• Discord role
+• NFT mint
+• Early mainnet
+
+⚠️ Gunakan wallet khusus airdrop.
+`
+    );
+  }
+
+  /*
+  ====================================
+  WALLET TRACKER
+  ====================================
+  */
+
+  if (text.startsWith('/wallet')) {
+
+    const address = text.split(' ')[1];
+
+    if (!address) {
+
+      return bot.sendMessage(
+        chatId,
+        '❌ Contoh:\n/wallet 0x123...'
+      );
+    }
+
+    return bot.sendMessage(
+      chatId,
+`
+👛 Wallet Tracker
+
+Address:
+${address}
+
+🔍 Track:
+https://debank.com/profile/${address}
+
+🔍 Arkham:
+https://platform.arkhamintelligence.com/explorer/address/${address}
+
+⚠️ DYOR sebelum copy trade.
+`
+    );
+  }
+
+  /*
+  ====================================
+  MEMORY SETUP
+  ====================================
+  */
+
+  if (!chats[chatId]) {
+
+    chats[chatId] = [];
+  }
+
+  chats[chatId].push({
+    role: 'user',
+    content: text
+  });
+
+  /*
+  ====================================
+  LIMIT MEMORY
+  ====================================
+  */
+
+  if (chats[chatId].length > 10) {
+
+    chats[chatId].shift();
   }
 
   /*
@@ -63,7 +219,21 @@ Silakan chat apa saja.
   ====================================
   */
 
-  bot.sendChatAction(chatId, 'typing');
+  await bot.sendChatAction(
+    chatId,
+    'typing'
+  );
+
+  /*
+  ====================================
+  LOADING MESSAGE
+  ====================================
+  */
+
+  const loading = await bot.sendMessage(
+    chatId,
+    '🔍 AIMAN sedang berpikir...'
+  );
 
   /*
   ====================================
@@ -80,38 +250,71 @@ Silakan chat apa saja.
       {
         model: 'gpt-3.5-turbo',
 
+        max_tokens: 300,
+
         messages: [
+
           {
             role: 'system',
+
             content:
-              'Kamu adalah AIMAN AI, asisten crypto profesional khusus airdrop, mint FCFS, web3, dan testnet.'
+`
+Kamu adalah AIMAN AI.
+
+Asisten AI profesional khusus:
+- Crypto
+- Airdrop
+- Mint FCFS
+- NFT
+- Web3
+- Testnet
+- Wallet Security
+- Alpha Finder
+
+Karakter:
+- Pintar
+- Cepat
+- Profesional
+- Modern
+- Fokus hasil
+
+Aturan:
+- Jangan pernah meminta seed phrase
+- Jangan memberikan scam link
+- Prioritaskan keamanan wallet
+- Gunakan bahasa Indonesia modern
+`
           },
-          {
-            role: 'user',
-            content: text
-          }
+
+          ...chats[chatId]
+
         ]
 
       },
 
       {
         headers: {
+
           Authorization:
             `Bearer ${process.env.FREEMODEL_API_KEY}`,
 
           'Content-Type':
             'application/json'
+
         },
 
-        timeout: 30000
+        timeout: 120000
       }
     );
 
-    console.log("AI RESPONSE:", response.data);
+    console.log(
+      "AI RESPONSE:",
+      response.data
+    );
 
     /*
     ====================================
-    GET AI TEXT
+    GET AI REPLY
     ====================================
     */
 
@@ -127,12 +330,34 @@ Silakan chat apa saja.
     if (!aiReply) {
 
       aiReply =
-        '❌ AIMAN AI tidak memberi jawaban.';
+        '❌ AIMAN tidak memberi jawaban.';
     }
 
     /*
     ====================================
-    SEND TO TELEGRAM
+    SAVE MEMORY
+    ====================================
+    */
+
+    chats[chatId].push({
+      role: 'assistant',
+      content: aiReply
+    });
+
+    /*
+    ====================================
+    DELETE LOADING
+    ====================================
+    */
+
+    await bot.deleteMessage(
+      chatId,
+      loading.message_id
+    );
+
+    /*
+    ====================================
+    SEND REPLY
     ====================================
     */
 
@@ -148,9 +373,24 @@ Silakan chat apa saja.
       err.response?.data || err.message
     );
 
+    await bot.deleteMessage(
+      chatId,
+      loading.message_id
+    );
+
     await bot.sendMessage(
       chatId,
-      '❌ Error AI.\n\nCek Railway Logs.'
+`
+❌ AIMAN AI ERROR
+
+Kemungkinan:
+• API lambat
+• Model sibuk
+• Timeout
+• FreeModel overload
+
+Coba lagi beberapa saat.
+`
     );
   }
 
