@@ -4,8 +4,12 @@ const bot = new TelegramBot(process.env.BOT_TOKEN, {
   polling: true
 });
 
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, 'Hermes Bot Online 🚀');
-});
+console.log("Bot starting...");
 
-console.log("Hermes Running...");
+bot.on('message', (msg) => {
+  console.log(msg.text);
+
+  if(msg.text === '/start'){
+    bot.sendMessage(msg.chat.id, 'Hermes Bot Online 🚀');
+  }
+});
