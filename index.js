@@ -13,28 +13,59 @@ bot.on('message', async (msg) => {
   const text = msg.text;
 
   if (text === '/start') {
+
     return bot.sendMessage(
       chatId,
-      '🚀 Hermes AI Online!\nSilakan chat apa saja.'
+      '🚀 Hermes AI Online!\n\nSilakan chat apa saja.'
     );
+
   }
 
   try {
 
     const response = await axios.post(
-      'https://freemodel.dev/api/v1/chat/completions',
+      'https://api.freemodel.dev/v1/chat/completions',
       {
         model: 'gpt-3.5-turbo',
+
         messages: [
           {
             role: 'user',
             content: text
           }
         ]
+
       },
       {
         headers: {
-          'Authorization': `Bearer ${process.env.FREEMODEL_API_KEY}`,
+          'Authorization':
+            `Bearer ${process.env.FREEMODEL_API_KEY}`,
+
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const aiReply =
+      response.data.choices[0].message.content;
+
+    bot.sendMessage(chatId, aiReply);
+
+  } catch (err) {
+
+    console.log(err.response?.data || err.message);
+
+    bot.sendMessage(
+      chatId,
+      '❌ Error AI:\n' +
+      JSON.stringify(
+        err.response?.data || err.message
+      )
+    );
+
+  }
+
+});          'Authorization': `Bearer ${process.env.FREEMODEL_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
